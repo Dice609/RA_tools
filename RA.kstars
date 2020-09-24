@@ -1,0 +1,28 @@
+#!/bin/bash
+#KStars DBus script: RA
+#by Dice609
+#
+
+Data_date=($(awk -F'[-: ]' 'FNR == 3{print $5 " " $6 " " $7 " " $8 " " $9 " " $10}' $1)) #Getting intagration end time
+
+#Debugging code for time format
+#for i in "${Data_date[@]}"
+#do
+#	echo $i
+#done
+
+head $1 #Just peaking at the fft file
+
+PST=`expr $((Data_date[3])) - 7` #UTC to PST conversion
+
+#Changing time in kstars
+dbus-send --dest=org.kde.kstars --print-reply /KStars org.kde.kstars.setLocalTime int32:$((Data_date[0])) int32:$((Data_date[1])) int32:$((Data_date[2])) int32:$PST int32:$((Data_date[4])) int32:$((Data_date[5]))
+
+AZ=$3
+ALT=$2
+
+#Changing altitude and azmuth 
+dbus-send --dest=org.kde.kstars --print-reply /KStars org.kde.kstars.setAltAz double:$ALT double:$AZ
+
+gnuplot --persist -e "set terminal qt; set term qt size 1600, 900; plot '$1' skip 5" #Graphing FFT data
+##
